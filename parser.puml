@@ -1,0 +1,52 @@
+@startuml
+class org.example.ParentingAgeException {
++ Person person
+- {static} String personAndLifespan(Person)
+}
+
+
+class org.example.Main {
++ {static} void main(String[])
+}
+
+class org.example.NegativeLifespanException {
+}
+class org.example.Person {
+- String name
+- LocalDate birthDate
+- LocalDate deathDate
+- List<Person> parents
++ {static} Person fromCsvLine(String)
++ {static} List<Person> fromCsv(String)
+- void validateAmbiguous(List<Person>)
+- void validateLifeSpan()
+- void validateParentingAge()
++ String getName()
++ LocalDate getBirthDate()
++ LocalDate getDeathDate()
++ String toString()
++ void addParent(Person)
++ {static} void toBinaryFile(List<Person>,String)
++ {static} List<Person> fromBinaryFile(String)
+}
+
+
+class org.example.AmbiguousPersonException {
+}
+class org.example.PersonWithParentsNames {
+- Person person
+- List<String> names
++ {static} PersonWithParentsNames fromCsvLine(String)
++ Person getPerson()
+~ {static} void linkRelatives(Map<String,PersonWithParentsNames>)
++ String toString()
+}
+
+
+
+
+org.example.Exception <|-- org.example.ParentingAgeException
+org.example.Exception <|-- org.example.NegativeLifespanException
+org.example.Serializable <|.. org.example.Person
+org.example.Exception <|-- org.example.AmbiguousPersonException
+@enduml
