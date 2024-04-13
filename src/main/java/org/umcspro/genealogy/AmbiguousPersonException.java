@@ -1,4 +1,4 @@
-package org.example;
+package org.umcspro.genealogy;
 
 public class AmbiguousPersonException extends Exception {
     public AmbiguousPersonException(Person person) {
