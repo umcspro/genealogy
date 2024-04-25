@@ -1,3 +1,4 @@
+plantuml-1.2024.4.jar
 target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/

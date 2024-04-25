@@ -5,6 +5,10 @@ import java.io.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 //Zadanie 1.
 // Napisz klasę Person, w której znajdować będą się dane odpowiadające wierszowi pliku.
@@ -153,7 +157,71 @@ public class Person implements Serializable{
             return (List<Person>) ois.readObject();
         }
     }
-
     //<----------------------------------------------------------------------------------------zad7
+
+    public String generateTree(){
+        Function<Person,String> cleanPersonName = p -> p.getName().replaceAll(" ","");
+        Function<Person, String> addObject = person -> String.format("object %s", cleanPersonName.apply(person));
+
+        StringBuilder sb = new StringBuilder("@startuml\n");
+        String pname = cleanPersonName.apply(this);
+        sb.append(addObject.apply(this));
+
+        if (!parents.isEmpty()) {
+            String parentSections = parents.stream()
+                    .map(parent ->"\n"+addObject.apply(parent)+"\n"+
+                            cleanPersonName.apply(parent)+"<--"+pname )
+                    .collect(Collectors.joining());
+            sb.append(parentSections);
+        }
+        return sb.append("\n@enduml").toString();
+    }
+
+    public static String generateTree(List<Person> people, Function<String, String> postProcess, Predicate<Person> condition) {
+        Function<Person,String> clean = p -> p.getName().replaceAll(" ","");
+        Function<Person, String> addObject = person -> String.format("object %s\n", clean.apply(person));
+        Function<Person, String> post = addObject.andThen(postProcess);
+            String objects = people.stream()
+                    .map(person -> condition.test(person)?post.apply(person):addObject.apply(person) )
+                    .collect(Collectors.joining());
+
+            String relationships = people.stream()
+                    .flatMap(person ->
+                        person.getParents().isEmpty() ?  Stream.empty():
+                        person.getParents().stream()
+                                .map(parent -> String.format("%s <-- %s\n",clean.apply(parent),
+                                        clean.apply(person)
+                                        ))
+                    )
+                    .collect(Collectors.joining());
+
+            return String.format("@startuml\n%s%s@enduml", objects, relationships);
+        }
+
+    public static List<Person> filterByName(List<Person> people, String substring) {
+        return people.stream()
+                .filter(person -> person.getName().contains(substring))
+                .collect(Collectors.toList());
+    }
+    public static List<Person> sortDeadByLifespan(List<Person> people) {
+        Function<Person, Long> getLifespan = person
+                -> person.deathDate.toEpochDay() - person.birthDate.toEpochDay();
+
+        return people.stream()
+                .filter(person -> person.deathDate != null)
+                .sorted((o2, o1) -> Long.compare(getLifespan.apply(o1), getLifespan.apply(o2)))
+                .toList();
+    }
+
+    public static Person findOldestLiving(List<Person> people) {
+        return people.stream()
+                .filter(person -> person.deathDate == null)
+                .min(Comparator.comparing(Person::getBirthDate))
+                .orElse(null);
+    }
+
+    private List<Person> getParents() {
+        return this.parents;
+    }
 
 }
